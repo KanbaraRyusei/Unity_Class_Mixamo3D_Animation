@@ -32,15 +32,15 @@ public class PlayerMove : MonoBehaviour
         var h = Input.GetAxisRaw("Horizontal");
         var v = Input.GetAxisRaw("Vertical");
 
-        Debug.Log(h + " " + v);
         var speed = _isRun ? _runSpeed : _walkSpeed;
 
-        if(0 < h || 0 < v)
+        if(0 != h || 0 != v)
         {
-            //_anim.SetFloat("Speed", speed);
+            _anim.SetFloat("Speed", speed);
         }
         else
         {
+            _anim.SetFloat("Speed", 0);
             return;
         }
 
