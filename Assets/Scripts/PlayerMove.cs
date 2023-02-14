@@ -1,57 +1,83 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Threading.Tasks;
 
 [RequireComponent(typeof(Rigidbody), typeof(Animator))]
 public class PlayerMove : MonoBehaviour
 {
-    [SerializeField]
-    private float _walkSpeed = 0.75f;
+	[SerializeField]
+	GameObject _cameraGb;
 
-    [SerializeField]
-    private float _runSpeed = 2f;
+	[SerializeField]
+	float _speed = 10;
 
-    private bool _isRun = false;
-    private Rigidbody _rb = null;
-    private Animator _anim = null;
+	[SerializeField]
+	Attack _attack;
 
-    private void Awake()
+	Vector3 _right;
+	Vector3 _left;
+	bool _leftButton;
+	bool _rightButton;
+
+	Rigidbody _rb;
+	Animator _anim;
+
+    private void Start()
     {
-        _rb = GetComponent<Rigidbody>();
-        _anim = GetComponent<Animator>();
+		_rb = GetComponent<Rigidbody>();
+		_anim = GetComponent<Animator>();
     }
 
-    private void Update()
-    {
-        Move();
-        Run();
-    }
+    void Update()
+	{
+		var forward = this.transform.position - _cameraGb.transform.position;
+		forward.y = 0;
 
-    private void Move()
-    {
-        var h = Input.GetAxisRaw("Horizontal");
-        var v = Input.GetAxisRaw("Vertical");
+		var right = Quaternion.LookRotation(forward) * Quaternion.Euler(0, 90, 0);
+		var left = Quaternion.LookRotation(forward) * Quaternion.Euler(0, -90, 0);
 
-        var speed = _isRun ? _runSpeed : _walkSpeed;
+		float h = Input.GetAxisRaw("Horizontal");
+		float v = Input.GetAxisRaw("Vertical");
 
-        if(0 != h || 0 != v)
+		if (v >= 0.1f)
+		{
+			_rb.velocity = forward.normalized * _speed;
+			this.transform.LookAt(this.transform.position + forward);
+		}
+
+		if (v <= -0.1f)
+		{
+
+			_rb.velocity = -forward.normalized * _speed;
+			this.transform.LookAt(this.transform.position - forward);
+			_rightButton = true;
+		}
+
+		if (h >= 0.1f)
+		{
+
+			this.transform.rotation = right;
+			_rb.velocity = this.transform.forward * _speed;
+		}
+
+		if (h <= -0.1f)
+		{
+			this.transform.rotation = left;
+			_rb.velocity = this.transform.forward * _speed;
+		}
+
+		if(Input.GetKeyDown(KeyCode.Space))
         {
-            _anim.SetFloat("Speed", speed);
+			_anim.SetBool("IsAttack", true);
+			_ = _attack.PlayerAttack();
+			_ = Delay();
         }
-        else
-        {
-            _anim.SetFloat("Speed", 0);
-            return;
-        }
+	}
 
-        _rb.velocity = new Vector3(h * speed, 0, v * speed);
-    }
-
-    private void Run()
+	private async Task Delay()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            _isRun = !_isRun;
-        }
-    }
+		await Task.Delay(4150);
+		_anim.SetBool("IsAttack", false);
+	}
 }
